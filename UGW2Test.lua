@@ -1,4 +1,4 @@
--- ok steal it gng idc
+-- ok steal it gng idc it's kinda vibecoded
 
 local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/Ikzyw/Ahsyw5173-kayeg-/refs/heads/main/Yyyyyyyyy.lua"))()
 
