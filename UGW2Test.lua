@@ -1,7 +1,5 @@
 -- ok use it no credits needed
 
-print("X2 Hub")
-
 local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/Ikzyw/Ahsyw5173-kayeg-/refs/heads/main/Yyyyyyyyy.lua"))()
 
 local windows = UILibrary.CreateWindow("X2 Hub","","590","v1")
@@ -473,6 +471,18 @@ local NearestCombatConfig = {
     ReachVisualizer = true
 }
 
+local CurrentTool = nil
+
+RunService.Heartbeat:Connect(function()
+    local char = LocalPlayer.Character
+    if not char then return end
+
+    local tool = char:FindFirstChild("Sword")
+    if tool then
+        CurrentTool = tool
+    end
+end)
+
 local vis = Instance.new("Part")
 vis.Anchored = true
 vis.CanCollide = false
@@ -485,7 +495,7 @@ vis.Parent = nil
 local function hitPart(part, handle)
     local hum = part.Parent and part.Parent:FindFirstChildOfClass("Humanoid")
     if hum and part.Parent ~= LocalPlayer.Character then
-        if Config.ReachDamage then
+        if NearestCombatConfig.ReachDamage then
             for _,v in pairs(part.Parent:GetChildren()) do
                 if v:IsA("BasePart") then
                     firetouchinterest(v, handle, 0)
@@ -668,14 +678,11 @@ RunService.RenderStepped:Connect(function()
         vis.Parent = nil
         return 
     end
-    
-   local char = LocalPlayer.Character
-   if not char then return end
 
-   local tool = char:FindFirstChild("Sword")
-   if not tool then 
-         vis.Parent = nil
-       return 
+    local tool = CurrentTool
+    if not tool or not tool.Parent then
+        vis.Parent = nil
+        return
     end
 
     local handle = tool:FindFirstChild("Handle") or tool:FindFirstChildWhichIsA("BasePart")
@@ -700,7 +707,7 @@ RunService.RenderStepped:Connect(function()
 
             local hrp = p.Character and p.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
-                if (hrp.Position - handle.Position).Magnitude <= reach then
+                if (hrp.Position - handle.Position).Magnitude <= reach + 2 then
                     hitPart(hrp, handle)
                 end
             end
