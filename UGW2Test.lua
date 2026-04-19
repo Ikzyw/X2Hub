@@ -1,4 +1,4 @@
--- ok steal it gng idc it's kinda vibecoded
+-- ok use it no credits needed
 
 local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/Ikzyw/Ahsyw5173-kayeg-/refs/heads/main/Yyyyyyyyy.lua"))()
 
@@ -120,7 +120,9 @@ Tab:AddBigBanner({
     end
 })
 
-Tab:AddParagraph(greeting.. ", " .. LocalPlayer.Name .. "!", "Welcome to X2 Hub —\n\nThe Great Script Hub Supports nil games\n\nNeed help or just wanna hang out?\nJoin our Discord server", "Nothing's More Bro..")
+Tab:AddParagraph(greeting.. ", " .. LocalPlayer.Name .. "!", "Welcome to X2 Hub —\n\nThe Great Script Hub Supports 1 games\n\nNeed help or just wanna hang out?\nJoin our Discord server", "Nothing's More Bro..")
+
+Tab:AddParagraph("Information", "Created By : Ikzyw/lucky_helpme7alt on roblox. Free to use. no copyrights.", "")
 
 Tab:AddParagraph("version 1.0", "Created at 04.14.26 (v 1.0)", "Nothing's More Bro..")
 
@@ -248,8 +250,7 @@ local Config = {
     MaxSamples = 4,
     Ping = 0.2,
     WallCheck = true,
-    ButtonShoot = false,
-    Reach = 5
+    ButtonShoot = false
 }
 
 local Remote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("Remote"):WaitForChild("ShotTarget")
@@ -365,6 +366,22 @@ local function GetShitdictedPosition(target)
     return predicted
 end
 
+local function getTool()
+    local char = LocalPlayer.Character
+    local tool = char and char:FindFirstChildOfClass("Tool")
+    if tool then return tool end
+
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    if not backpack then return nil end
+
+    for _,v in pairs(backpack:GetChildren()) do
+        if v:IsA("Tool") and (v.Name:lower():find("sniper") or v.Name:lower():find("pistol")) then
+            v.Parent = char
+            return v
+        end
+    end
+end
+
 local LMG2L = {};
 
 LMG2L["ScreenGui_1"] = Instance.new("ScreenGui", game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"));
@@ -428,8 +445,6 @@ end)
 local ShootBtn = LMG2L["TextButton_2"]
 ShootBtn.Visible = false
 
-local ShootBtn = LMG2L["TextButton_2"]
-
 ShootBtn.MouseButton1Click:Connect(function()
     if not Config.ButtonShoot then return end
 
@@ -441,20 +456,47 @@ ShootBtn.MouseButton1Click:Connect(function()
             return
         end
 
-        local tool = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Tool")
+        local tool = getTool()
         if tool then
             Remote:FireServer(predicted, tool.Name)
         end
     end
 end)
 
-Tab:AddButton({
-	Name = "Reach",
-	Description = "other ppl script I'm lazy to make lol",
-	Callback = function()
-		loadstring(game:HttpGet("https://pastebin.com/raw/Jsghb8bt"))()
-	end,
-})
+local NearestCombatConfig = {
+	Reach = 5,
+    ReachEnabled = false,
+    ReachType = "Sphere",
+    ReachDamage = true,
+    ReachVisualizer = true
+}
+
+local vis = Instance.new("Part")
+vis.Anchored = true
+vis.CanCollide = false
+vis.Transparency = 0.6
+vis.Material = Enum.Material.ForceField
+vis.Shape = Enum.PartType.Ball
+vis.Size = Vector3.new(1,1,1)
+vis.Parent = nil
+
+local function hitPart(part, handle)
+    local hum = part.Parent and part.Parent:FindFirstChildOfClass("Humanoid")
+    if hum and part.Parent ~= LocalPlayer.Character then
+        if Config.ReachDamage then
+            for _,v in pairs(part.Parent:GetChildren()) do
+                if v:IsA("BasePart") then
+                    firetouchinterest(v, handle, 0)
+                    firetouchinterest(v, handle, 1)
+                end
+            end
+        else
+            firetouchinterest(part, handle, 0)
+            firetouchinterest(part, handle, 1)
+        end
+    end
+end
+
 Tab:AddToggle({
     Name = "Silent Aim",
     Default = Config.Enabled,
@@ -580,6 +622,86 @@ RunService.Heartbeat:Connect(function()
         if target then
             local predicted = GetShitdictedPosition(target)
             Remote:FireServer(predicted, tool.Name)
+        end
+    end
+end)
+
+Tab:AddSection("close range only")
+
+Tab:AddToggle({
+    Name = "Sword Reach",
+    Callback = function(v)
+        NearestCombatConfig.ReachEnabled = v
+    end
+})
+
+Tab:AddSlider({
+    Name = "Reach Size",
+    Min = 1,
+    Max = 50,
+    Default = 5,
+    Callback = function(v)
+        NearestCombatConfig.Reach = v
+    end
+})
+
+Tab:AddToggle({
+    Name = "Reach Damage Spam",
+    Default = NearestCombatConfig.ReachDamage,
+    Callback = function(v)
+        NearestCombatConfig.ReachDamage = v
+    end
+})
+
+Tab:AddToggle({
+    Name = "Reach Visualizer",
+    Default = NearestCombatConfig.ReachVisualizer,
+    Callback = function(v)
+        NearestCombatConfig.ReachVisualizer = v
+    end
+})
+
+RunService.RenderStepped:Connect(function()
+    if not NearestCombatConfig.ReachEnabled then 
+        vis.Parent = nil
+        return 
+    end
+    
+   local char = LocalPlayer.Character
+   if not char then return end
+
+   local tool = char:FindFirstChild("Sword")
+   if not tool then 
+         vis.Parent = nil
+       return 
+    end
+
+    local handle = tool:FindFirstChild("Handle") or tool:FindFirstChildWhichIsA("BasePart")
+    if not handle then return end
+
+    local reach = NearestCombatConfig.Reach
+
+    if NearestCombatConfig.ReachVisualizer then
+    if not vis.Parent then
+        vis.Parent = workspace
+    end
+       vis.Size = Vector3.new(reach, reach, reach)
+       vis.CFrame = handle.CFrame
+   else
+       vis.Size = Vector3.new(0,0,0)
+       vis.Parent = nil
+    end
+
+    for _,p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then
+            if p.Team and LocalPlayer.Team and p.Team == LocalPlayer.Team then continue end
+
+            local hrp = p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                if (hrp.Position - handle.Position).Magnitude <= reach then
+                    hitPart(hrp, handle)
+                end
+            end
         end
     end
 end)
@@ -753,57 +875,6 @@ end
                 hb.bar.Filled=true
                 hb.bar.Visible=true
             end
-
-            if Config.ESP.Skeleton and hum then
-            if not hum or hum.Health <= 0 then continue end
-                skeletons[p]=skeletons[p] or {}
-
-                local joints = {
-    {"Head","UpperTorso"},
-    {"UpperTorso","LowerTorso"},
-
-    {"UpperTorso","LeftUpperArm"},
-    {"LeftUpperArm","LeftLowerArm"},
-    {"LeftLowerArm","LeftHand"},
-
-    {"UpperTorso","RightUpperArm"},
-    {"RightUpperArm","RightLowerArm"},
-    {"RightLowerArm","RightHand"},
-
-    {"LowerTorso","LeftUpperLeg"},
-    {"LeftUpperLeg","LeftLowerLeg"},
-    {"LeftLowerLeg","LeftFoot"},
-
-    {"LowerTorso","RightUpperLeg"},
-    {"RightUpperLeg","RightLowerLeg"},
-    {"RightLowerLeg","RightFoot"},
-}
-
-                for i,v in pairs(joints) do
-                    local a=char:FindFirstChild(v[1])
-                    local b=char:FindFirstChild(v[2])
-
-                    local line=skeletons[p][i] or Drawing.new("Line")
-                    skeletons[p][i]=line
-
-                    if a and b then
-                        local A,va=Camera:WorldToViewportPoint(a.Position)
-                        local B,vb=Camera:WorldToViewportPoint(b.Position)
-
-                        if va and vb then
-                            line.From=Vector2.new(A.X,A.Y)
-                            line.To=Vector2.new(B.X,B.Y)
-                            line.Color=getColor(p)
-                            line.Thickness=2
-                            line.Visible=true
-                        else
-                            line.Visible=false
-                        end
-                    else
-                        line.Visible=false
-                    end
-                end
-            end
         end
     end
 end)
@@ -812,7 +883,6 @@ Tab:AddToggle({Name="Enable ESP",Callback=function(v)Config.ESP.Enabled=v if not
 Tab:AddToggle({Name="Name",Callback=function(v)Config.ESP.Name=v if not v then clearESP() end end})
 Tab:AddToggle({Name="Tracer",Callback=function(v)Config.ESP.Tracer=v if not v then clearESP() end end})
 Tab:AddToggle({Name="Chams",Callback=function(v)Config.ESP.Chams=v if not v then clearESP() end end})
-Tab:AddToggle({Name="Skeleton",Callback=function(v)Config.ESP.Skeleton=v if not v then clearESP() end end})
 Tab:AddToggle({Name="Health Bar",Callback=function(v)Config.ESP.Health=v if not v then clearESP() end end})
 
 local Tab = windows:AddTab("Player", "rbxassetid://81589895647169")
@@ -869,6 +939,47 @@ Tab:AddToggle({
     Name = "Infinite Jump",
     Callback = function(v)
         Movement.InfJump = v
+    end
+})
+
+local CFspeed = 50
+Tab:AddSlider({
+    Name = "Fly Speed",
+    Min = 50,
+    Max = 1000,
+    Default = CFspeed,
+    Callback = function(v)
+        CFspeed = v
+    end
+})
+
+Tab:AddToggle({
+    Name = "Fly",
+    Callback = function(v)
+        if v then
+          player.Character:FindFirstChildOfClass('Humanoid').PlatformStand = true
+	local Head = player.Character:WaitForChild("Head")
+	Head.Anchored = true
+	if CFloop then CFloop:Disconnect() end
+	CFloop = RunService.Heartbeat:Connect(function(deltaTime)
+		local moveDirection = player.Character:FindFirstChildOfClass('Humanoid').MoveDirection * (CFspeed * deltaTime)
+		local headCFrame = Head.CFrame
+		local camera = workspace.CurrentCamera
+		local cameraCFrame = camera.CFrame
+		local cameraOffset = headCFrame:ToObjectSpace(cameraCFrame).Position
+		cameraCFrame = cameraCFrame * CFrame.new(-cameraOffset.X, -cameraOffset.Y, -cameraOffset.Z + 1)
+		local cameraPosition = cameraCFrame.Position
+		local headPosition = headCFrame.Position
+
+		local objectSpaceVelocity = CFrame.new(cameraPosition, Vector3.new(headPosition.X, cameraPosition.Y, headPosition.Z)):VectorToObjectSpace(moveDirection)
+		Head.CFrame = CFrame.new(headPosition) * (cameraCFrame - cameraPosition) * CFrame.new(objectSpaceVelocity)
+	end)
+	else
+	  if CFloop then CFloop:Disconnect() end
+		player.Character:FindFirstChildOfClass('Humanoid').PlatformStand = false
+		local Head = player.Character:WaitForChild("Head")
+		Head.Anchored = false
+    end
     end
 })
 
@@ -990,10 +1101,10 @@ Settings:AddToggle({
             SaveConfigCon = nil
 		end
 	    if state then
-            windows:SaveConfig("zxcursedsocute","forsaken.json")
+            windows:SaveConfig("ilysmlucky","ugw2.json")
             SaveConfigCon = game.Players.PlayerRemoving:Connect(function(plr)
                 if plr.DisplayName == game.Players.LocalPlayer.DisplayName then
-                    windows:SaveConfig("zxcursedsocute","forsaken.json")
+                    windows:SaveConfig("ilysmlucky","ugw2.json")
                 end
 	        end)
 		end
@@ -1019,5 +1130,3 @@ Settings:AddInput({
 
 windows:ChangeBackgroundTransparance()
 windows:SetTheme("Black")
-
-print("X2 HUB ON TOP!!")
