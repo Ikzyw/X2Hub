@@ -1,5 +1,7 @@
 -- ok use it no credits needed
 
+print("X2 Hub")
+
 local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/Ikzyw/Ahsyw5173-kayeg-/refs/heads/main/Yyyyyyyyy.lua"))()
 
 local windows = UILibrary.CreateWindow("X2 Hub","","590","v1")
